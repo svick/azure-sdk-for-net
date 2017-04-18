@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Batch.Conventions.Files.Utilities
     internal static class ContainerNameUtils
     {
         private static readonly Regex PermittedContainerNamePattern = new Regex("^[a-z0-9][-a-z0-9]*$");
-        private static readonly Func<HashAlgorithm> hasher = () => new SHA1CryptoServiceProvider();  // new instance each time because a shared instance would not be thread-safe
+        private static readonly Func<HashAlgorithm> hasher = () => SHA1.Create();  // new instance each time because a shared instance would not be thread-safe
         private static readonly int MaxJobIdLengthInMungedContainerName = 15;  // must be <= 63 - "job-".Length - 1 (hyphen before hash) - length of hash string (40 for SHA1)
         private static readonly char[] ForbiddenLeadingTrailingContainerNameChars = new[] { '-' };
         private static readonly Regex UnderscoresAndMultipleDashes = new Regex("[_-]+");

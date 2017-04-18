@@ -88,7 +88,7 @@ namespace Microsoft.Azure.Batch.Conventions.Files
 
             var blobName = BlobName(kind, destinationRelativePath);
             var blob = _jobOutputContainer.GetBlockBlobReference(blobName);
-            await blob.UploadFromFileAsync(sourcePath, cancellationToken);
+            await blob.UploadFromFileAsync(sourcePath, null, null, null, cancellationToken);
         }
 
         // Uploads text to blob storage.
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.Batch.Conventions.Files
 
             var blobName = BlobName(kind, destinationRelativePath);
             var blob = _jobOutputContainer.GetBlockBlobReference(blobName);
-            await blob.UploadTextAsync(text, cancellationToken);
+            await blob.UploadTextAsync(text, null, null, null, null, cancellationToken);
         }
 
         // Uploads a file and tracks appends to that file. The implementation creates an append blob to
@@ -162,9 +162,30 @@ namespace Microsoft.Azure.Batch.Conventions.Files
                 throw new ArgumentNullException(nameof(kind));
             }
 
-            return _jobOutputContainer.ListBlobs(BlobNamePrefix(kind), useFlatBlobListing: true)
-                                      .OfType<ICloudBlob>()
-                                      .Select(b => new OutputFileReference(b));
+            IEnumerable<IListBlobItem> ListBlobs()
+            {
+                // Adapted from https://msdn.microsoft.com/en-us/library/microsoft.windowsazure.storage.blob.cloudblobclient.listblobssegmentedasync.aspx#Examples.
+
+                BlobContinuationToken continuationToken = null;
+
+                do
+                {
+                    var resultSegment = _jobOutputContainer.ListBlobsSegmentedAsync(
+                            BlobNamePrefix(kind), true, BlobListingDetails.None, null, continuationToken, null, null)
+                        .Result;
+
+                    foreach (var blob in resultSegment.Results)
+                    {
+                        yield return blob;
+                    }
+
+                    continuationToken = resultSegment.ContinuationToken;
+                } while (continuationToken != null);
+            }
+
+            return ListBlobs()
+                .OfType<ICloudBlob>()
+                .Select(b => new OutputFileReference(b));
         }
 
         public async Task<OutputFileReference> GetOutputAsync(IOutputKind kind, string filePath, CancellationToken cancellationToken = default(CancellationToken))
@@ -176,7 +197,7 @@ namespace Microsoft.Azure.Batch.Conventions.Files
 
             Validate.IsNotNullOrEmpty(filePath, nameof(filePath));
 
-            var blob = await _jobOutputContainer.GetBlobReferenceFromServerAsync(BlobName(kind, filePath), cancellationToken);
+            var blob = await _jobOutputContainer.GetBlobReferenceFromServerAsync(BlobName(kind, filePath), null, null, null, cancellationToken);
 
             return new OutputFileReference(blob);
         }

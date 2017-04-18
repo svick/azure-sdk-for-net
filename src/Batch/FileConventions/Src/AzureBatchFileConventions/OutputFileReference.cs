@@ -78,7 +78,11 @@ namespace Microsoft.Azure.Batch.Conventions.Files
         /// <seealso cref="ICloudBlob.DownloadToFileAsync(string, FileMode, CancellationToken)"/>
         public async Task DownloadToFileAsync(string path, FileMode mode, CancellationToken cancellationToken = default(CancellationToken))
         {
+#if NET45
             await CloudBlob.DownloadToFileAsync(path, mode, cancellationToken);
+#else
+            await CloudBlob.DownloadToFileAsync(path, mode);
+#endif
         }
 
         /// <summary>
@@ -90,7 +94,11 @@ namespace Microsoft.Azure.Batch.Conventions.Files
         /// <seealso cref="ICloudBlob.DownloadToStreamAsync(Stream, CancellationToken)"/>
         public async Task DownloadToStreamAsync(Stream target, CancellationToken cancellationToken = default(CancellationToken))
         {
+#if NET45
             await CloudBlob.DownloadToStreamAsync(target, cancellationToken);
+#else
+            await CloudBlob.DownloadToStreamAsync(target);
+#endif
         }
 
         /// <summary>
@@ -103,7 +111,11 @@ namespace Microsoft.Azure.Batch.Conventions.Files
         /// <seealso cref="ICloudBlob.DownloadToByteArrayAsync(byte[], int, CancellationToken)"/>
         public async Task<int> DownloadToByteArrayAsync(byte[] target, int index, CancellationToken cancellationToken = default(CancellationToken))
         {
+#if NET45
             return await CloudBlob.DownloadToByteArrayAsync(target, index, cancellationToken);
+#else
+            return await CloudBlob.DownloadToByteArrayAsync(target, index);
+#endif
         }
 
         /// <summary>
@@ -114,7 +126,11 @@ namespace Microsoft.Azure.Batch.Conventions.Files
         /// <seealso cref="ICloudBlob.DeleteAsync(CancellationToken)"/>
         public async Task DeleteAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+#if NET45
             await CloudBlob.DeleteAsync(cancellationToken);
+#else
+            await CloudBlob.DeleteAsync();
+#endif
         }
 
         /// <summary>
@@ -125,7 +141,11 @@ namespace Microsoft.Azure.Batch.Conventions.Files
         /// <seealso cref="ICloudBlob.OpenReadAsync(CancellationToken)"/>
         public async Task<Stream> OpenReadAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+#if NET45
             return await CloudBlob.OpenReadAsync(cancellationToken);
+#else
+            return await CloudBlob.OpenReadAsync(null, null, null);
+#endif
         }
     }
 }
